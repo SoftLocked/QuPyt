@@ -1,16 +1,18 @@
 import numpy as np
 import qupy as qp
 
-def deutsch_josza(f, n):
+def deutsch_josza(f, buffer):
 
-    def deutsch_josza_Uf(f, n):
-        dim = 2 ** (n + 1)
+    def deutsch_josza_Uf():
+        nonlocal f
+        nonlocal buffer
+        dim = 2 ** (buffer+1)
         U = np.zeros((dim, dim))
 
         for i in range(dim):
-            bits = format(i, f'0{n+1}b')
-            x_bits = bits[:n]
-            y_bit = bits[n]
+            bits = format(i, f'0{buffer+1}b')
+            x_bits = bits[:buffer]
+            y_bit = bits[buffer]
             
             x_int = int(x_bits, 2)
             y_int = int(y_bit)
@@ -24,24 +26,25 @@ def deutsch_josza(f, n):
             U[output_idx][input_idx] = 1
 
         return U
+    
+    intermediate = []
 
-    zero = np.array([[1], [0]])
-    one = np.array([[0], [1]])
+    state = qp.layers.Input(buffer+1) # Initializes circuit with n+1 qubits (all set to ket0)
+    intermediate.append(state)
 
-    init_state = zero
-    n_hadamard = qp.gates.H
-    for i in range(n-1):
-        init_state = np.kron(init_state, zero)
-        n_hadamard = np.kron(n_hadamard, qp.gates.H)
-    init_state = np.kron(init_state, qp.gates.H @ one)
-    n_hadamard = np.kron(n_hadamard, qp.gates.I)
+    state = qp.layers.Custom(state, qp.subroutines.gate_builder([qp.subroutines.n_kron(qp.gates.I, buffer), qp.gates.X])) # Set the output qubit to ket1
+    intermediate.append(state)
+    
+    state = qp.layers.N_Hadamard(state) # Apply Hadamard on all the qubits
+    intermediate.append(state)
+    
+    state = qp.layers.Custom(state, deutsch_josza_Uf()) # Apply the Deutsch-Josza unitary to entire circuit
+    intermediate.append(state)
+    
+    state = qp.layers.Custom(state, qp.subroutines.gate_builder([qp.subroutines.n_kron(qp.gates.H, buffer), qp.gates.I])) # Apply Hadamard to all the qubits except the output
+    intermediate.append(state)
+    
+    state = qp.layers.Measure(state, list(range(buffer))) # Measure all qubits except the output qubit to get the result
+    intermediate.append(state[1])
 
-    after_hadamard = n_hadamard @ init_state
-
-    after_Uf = deutsch_josza_Uf(f, n) @ after_hadamard
-
-    hadamard_back = n_hadamard @ after_Uf
-
-    measured, new = qp.Qubit.partial_measure(hadamard_back, [i for i in range(n)])
-
-    return 'constant' if int(measured) == 0 else 'balanced'
+    return ('constant' if int(state[0]) == 0 else 'balanced', intermediate)
