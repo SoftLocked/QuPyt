@@ -48,11 +48,6 @@ def grover(f, num_sols=1, buffer=10):
 
 
 
-
-
-
-
-
 def animate_grover(intermediate, BUFFER, MARKED_INDICES):
 
     def grover_basis(N, marked_indices):
