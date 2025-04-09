@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
-import qupy as qp
+import qupyt as qp
 
 def grover(f, num_sols=1, buffer=10):
 
