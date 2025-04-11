@@ -1,5 +1,5 @@
 import numpy as np
-import qupy as qp
+import qupyt as qp
 
 def deutsch(f):
 

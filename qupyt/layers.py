@@ -1,4 +1,4 @@
-import qupy as qp
+import qupyt as qp
 import numpy as np
 
 def Input(num_bits):

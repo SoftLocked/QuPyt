@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="QuPyt",
-    version="0.1.0",
+    name="qupyt",
+    version="0.1.3",
     packages=find_packages(),
-    install_requires=['numpy>=2.2.0'],
+    install_requires=['numpy>=2.2.0', 'matplotlib>=3.9.0'],
     author="Harikrishna Vardhineedi",
     author_email="harivardhineedi@gmail.com",
     description="Package to emulate and visualize quantum computations with a classical computer.",
